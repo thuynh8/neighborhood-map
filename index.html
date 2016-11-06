@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Neighborhood Map</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+	
+	<nav class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="#">Orange County's Points of Interest</a>
+		</div>
+	</nav>
+
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-3 col-md-2 sidebar">
+				<div class="input-group">
+					<input class="form-control" placeholder="Search Location" type="text" data-bind="value: filter, valueUpdate: 'afterkeydown'">
+					<span class="input-group-btn">
+						<button class="btn btn-primary" type="button">
+							<span class="glyphicon glyphicon-filter"></span>
+							Filter
+						</button>
+					</span>
+				</div>
+				<ul class="nav nav-sidebar" data-bind="foreach: filteredPlaces">
+					<li><a href="#" data-bind="text: name" onclick="clickedMarker(this.innerHTML);"></a></li>
+				</ul>
+			</div>
+			<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+				<div id="map"></div>
+			</div>
+		</div>
+	</div>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-9 col-lg-offset-3 col-md-10 col-md-offset-2">
+                    <ul class="list-inline text-center">
+                        <li>
+                            <a href="https://www.linkedin.com/in/tyler-huynh-662348b9">
+                                <span class="fa-stack fa-2x">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <span class="fa-stack fa-2x">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/thuynh8">
+                                <span class="fa-stack fa-2x">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+	<script src="js/libs/jquery.min.js"></script>
+	<script src="js/libs/knockout.js"></script>
+	<script src="js/libs/oauth-signature.min.js"></script>
+	<script src="js/app.js"></script>
+	<script async defer
+    src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyBxL8qkUOMhWz7ajinm7xXhSjFCvX5zc2E&callback=initMap" onerror="mapError()">
+    </script>
+    
+</body>
+</html>

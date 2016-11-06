@@ -1,0 +1,209 @@
+/*
+Create a model that stores the data
+*/
+var Places = [
+	{
+		name: "Bowers Museum",
+		address: "2002 N Main St, Santa Ana, CA 92706"
+	},
+	{
+		name: "Fountain Bowl",
+		address: "17110 Brookhurst St, Fountain Valley, CA 92708"
+	},
+	{
+		name: "Newport Pier",
+		address: "72 Mc Fadden Pl, Newport Beach, CA 92663"
+	},
+	{
+		name: "Disneyland",
+		address: "1313 Disneyland Dr, Anaheim, CA 92802"
+	},
+	{
+		name: "Knott’s Berry Farm",
+		address: "8039 Beach Blvd, Buena Park, CA 90620"
+	},
+	{
+		name: "Sumran Thai",
+		address: "6482 Westminster Ave, Westminster, CA 92683"
+	},
+	{
+		name: "Brodard Chateau",
+		address: "9100 Trask Ave, Garden Grove, CA 92844"
+	}
+];
+
+/*
+Generate a random number for use in Yelp API Oauth.
+*/
+function generateNonce() {
+	return (Math.floor(Math.random() * 1e12).toString());
+}
+
+/*
+Use Yelp API to search business information.
+*/
+function getYelpInfo(place) {
+	var yelp_url = "https://api.yelp.com/v2/search/";
+	var consumer_secret = "tJuIiRK3ofSyGrUB0naeQy0urZ0";
+	var token_secret = "HcGZLB5oXS6NbbDI0_WyoLTnqvI";
+
+	var params = {
+		oauth_consumer_key: "3F_BTxhDD_fmiPnp_lXagA",
+		oauth_token: "tE27kYnJw1B0TT3kqBqZSiNQBOb2J1eH", 
+		oauth_signature_method: 'HMAC-SHA1',
+		oauth_timestamp: Math.floor(Date.now()/1000),
+		oauth_nonce: generateNonce(),
+		oauth_version: '1.0',
+		callback: 'cb',
+		term: place.name,
+		location: 'Orange County, CA',
+		limit: 1
+	}
+
+	var encodedSignature = oauthSignature.generate('GET', yelp_url, params, consumer_secret, token_secret);
+	params.oauth_signature = encodedSignature;
+
+	var settings = {
+		url: yelp_url,
+		data: params,
+		cache: true,
+		dataType: 'jsonp',
+		success: function(result) {
+			$('#yelp-rating').attr("src", result.businesses[0].rating_img_url);
+			$('#yelp-phone').text(result.businesses[0].display_phone);
+		},
+		fail: function() {
+			alert("Failed to load Yelp.");
+		}
+	};
+
+	$.ajax(settings);
+}
+
+/*
+Create an array to store markers.
+*/
+var markers = [];
+
+/*
+Handle error if Google map failed to load.
+*/
+function mapError() {
+	alert("Failed to load Google Map.");
+}
+
+/*
+Initialize Google map and call geocodeAddress() on each location.
+*/
+function initMap() {
+
+	var map = new google.maps.Map(document.getElementById('map'), {
+		zoom: 10
+	});
+
+	var geocoder = new google.maps.Geocoder();
+
+	Places.forEach(function(place) {
+		geocodeAddress(geocoder, map, place);
+	});
+}
+
+/*
+geocodeAddress() converts addresses into geographic coordinates and place markers accordingly.
+*/
+function geocodeAddress(geocoder, resultsMap, place) {
+
+	var address = place.address;
+	geocoder.geocode({'address': address}, function(results, status) {
+		if (status === 'OK') {
+			resultsMap.setCenter(results[0].geometry.location);
+			place.marker = new google.maps.Marker({
+				map: resultsMap,
+				animation: google.maps.Animation.DROP,
+				position: results[0].geometry.location
+			});
+
+			var contentString = '<div><strong>' + place.name + '</strong><p></br>' + 
+								place.address + '</p></div>' +
+								'Phone: ' + '<p id="yelp-phone"></p></br>' +
+								'Yelp Ratings:  ' + '<img id="yelp-rating" src="">';
+
+			var infoWindow = new google.maps.InfoWindow({
+				content: contentString
+			});
+
+			google.maps.event.addListener(place.marker, 'click', function() {
+				getYelpInfo(place);
+				infoWindow.open(map, place.marker);
+				toggleBounce(place.marker);
+			});
+
+			markers.push({
+				name: place.name,
+				marker: place.marker
+			});
+
+		} else {
+			alert('Geocode was not successful for the following reason: ' + status);
+		}
+	});
+}
+
+/*
+Enable the marker to bounce.
+*/
+function toggleBounce(marker) {
+	if (marker.getAnimation() !== null) {
+		marker.setAnimation(null);
+	} else {
+		marker.setAnimation(google.maps.Animation.BOUNCE);
+		setTimeout(function() {
+			marker.setAnimation(null);
+		}, 750);
+	}
+}
+
+/*
+Open marker info window when corresponding item was clicked.
+*/
+function clickedMarker(name) {
+	markers.forEach(function(markerItem) {
+		if (markerItem.name == name) {
+			google.maps.event.trigger(markerItem.marker, 'click');
+		}
+	});
+}
+
+/*
+Create ViewModel.
+*/
+var ViewModel = function() {
+	var self = this;
+
+	this.filter = ko.observable("");
+
+	this.filteredPlaces = ko.computed(function() {
+		var filter = self.filter().toLowerCase();
+		if (!filter) {
+			Places.forEach(function(place) {
+				if (place.marker) {
+					place.marker.setVisible(true);
+				}
+			});
+			return Places;
+		} else {
+			return ko.utils.arrayFilter(Places, function(place) {
+		 		var match = place.name.toLowerCase().indexOf(filter) !== -1;
+		 		if (match) {
+		 			place.marker.setVisible(true);
+		 		} else {
+		 			place.marker.setVisible(false);
+		 		}
+		 		return match;
+		 	});
+		}
+	});
+
+};
+
+ko.applyBindings(new ViewModel());
