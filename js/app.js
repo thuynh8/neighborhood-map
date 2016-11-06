@@ -1,55 +1,55 @@
-/*
-Create a model that stores the data
+/**
+* Create a model that stores the data
 */
 var Places = [
 	{
-		name: "Bowers Museum",
-		address: "2002 N Main St, Santa Ana, CA 92706"
+		name: 'Bowers Museum',
+		address: '2002 N Main St, Santa Ana, CA 92706'
 	},
 	{
-		name: "Fountain Bowl",
-		address: "17110 Brookhurst St, Fountain Valley, CA 92708"
+		name: 'Fountain Bowl',
+		address: '17110 Brookhurst St, Fountain Valley, CA 92708'
 	},
 	{
-		name: "Newport Pier",
-		address: "72 Mc Fadden Pl, Newport Beach, CA 92663"
+		name: 'Newport Pier',
+		address: '72 Mc Fadden Pl, Newport Beach, CA 92663'
 	},
 	{
-		name: "Disneyland",
-		address: "1313 Disneyland Dr, Anaheim, CA 92802"
+		name: 'Disneyland',
+		address: '1313 Disneyland Dr, Anaheim, CA 92802'
 	},
 	{
-		name: "Knott’s Berry Farm",
-		address: "8039 Beach Blvd, Buena Park, CA 90620"
+		name: 'Knott’s Berry Farm',
+		address: '8039 Beach Blvd, Buena Park, CA 90620'
 	},
 	{
-		name: "Sumran Thai",
-		address: "6482 Westminster Ave, Westminster, CA 92683"
+		name: 'Sumran Thai',
+		address: '6482 Westminster Ave, Westminster, CA 92683'
 	},
 	{
-		name: "Brodard Chateau",
-		address: "9100 Trask Ave, Garden Grove, CA 92844"
+		name: 'Brodard Chateau',
+		address: '9100 Trask Ave, Garden Grove, CA 92844'
 	}
 ];
 
-/*
-Generate a random number for use in Yelp API Oauth.
+/**
+* Generate a random number for use in Yelp API Oauth.
 */
 function generateNonce() {
 	return (Math.floor(Math.random() * 1e12).toString());
 }
 
-/*
-Use Yelp API to search business information.
+/**
+* Use Yelp API to search business information.
 */
 function getYelpInfo(place) {
-	var yelp_url = "https://api.yelp.com/v2/search/";
+	var yelp_url = "https://api.yelp.com/v2/search";
 	var consumer_secret = "tJuIiRK3ofSyGrUB0naeQy0urZ0";
 	var token_secret = "HcGZLB5oXS6NbbDI0_WyoLTnqvI";
 
 	var params = {
 		oauth_consumer_key: "3F_BTxhDD_fmiPnp_lXagA",
-		oauth_token: "tE27kYnJw1B0TT3kqBqZSiNQBOb2J1eH", 
+		oauth_token: "tE27kYnJw1B0TT3kqBqZSiNQBOb2J1eH",
 		oauth_signature_method: 'HMAC-SHA1',
 		oauth_timestamp: Math.floor(Date.now()/1000),
 		oauth_nonce: generateNonce(),
@@ -63,37 +63,43 @@ function getYelpInfo(place) {
 	var encodedSignature = oauthSignature.generate('GET', yelp_url, params, consumer_secret, token_secret);
 	params.oauth_signature = encodedSignature;
 
-	var settings = {
+	$.ajax({
 		url: yelp_url,
 		data: params,
 		cache: true,
-		dataType: 'jsonp',
-		success: function(result) {
-			$('#yelp-rating').attr("src", result.businesses[0].rating_img_url);
-			$('#yelp-phone').text(result.businesses[0].display_phone);
-		},
-		fail: function() {
-			alert("Failed to load Yelp.");
-		}
-	};
+		dataType: 'jsonp'
+	}).done(function(data) {
+		var phone = data.businesses[0].display_phone;
+		var rating = data.businesses[0].rating_img_url;
 
-	$.ajax(settings);
+		var contentString = '<div><strong>'+ place.name + '</strong></br>'+
+								'<p>'+ place.address + '</p></br>' +
+								'<p>Phone: '+ phone + '</p></br>' +
+								'<p>Yelp Ratings: '+ '<img src="'+ rating + '"></p>' +
+								'</div>';
+		infoWindow.setContent(contentString);
+		infoWindow.open(map, place.marker);
+
+	}).fail(function() {
+		alert("Failed to load Yelp.");
+	});
 }
 
-/*
-Create an array to store markers.
+/**
+* Create an infoWindow to display info and an array to store markers.
 */
 var markers = [];
+var infoWindow;
 
-/*
-Handle error if Google map failed to load.
+/**
+* Handle error if Google map failed to load.
 */
 function mapError() {
 	alert("Failed to load Google Map.");
 }
 
-/*
-Initialize Google map and call geocodeAddress() on each location.
+/**
+* Initialize Google map and call geocodeAddress() on each location.
 */
 function initMap() {
 
@@ -101,19 +107,23 @@ function initMap() {
 		zoom: 10
 	});
 
+	infoWindow = new google.maps.InfoWindow();
+
 	var geocoder = new google.maps.Geocoder();
 
 	Places.forEach(function(place) {
 		geocodeAddress(geocoder, map, place);
 	});
+
+	ko.applyBindings(new ViewModel());
 }
 
-/*
-geocodeAddress() converts addresses into geographic coordinates and place markers accordingly.
+/**
+* geocodeAddress() converts addresses into geographic coordinates and place markers accordingly.
 */
 function geocodeAddress(geocoder, resultsMap, place) {
-
 	var address = place.address;
+
 	geocoder.geocode({'address': address}, function(results, status) {
 		if (status === 'OK') {
 			resultsMap.setCenter(results[0].geometry.location);
@@ -123,18 +133,8 @@ function geocodeAddress(geocoder, resultsMap, place) {
 				position: results[0].geometry.location
 			});
 
-			var contentString = '<div><strong>' + place.name + '</strong><p></br>' + 
-								place.address + '</p></div>' +
-								'Phone: ' + '<p id="yelp-phone"></p></br>' +
-								'Yelp Ratings:  ' + '<img id="yelp-rating" src="">';
-
-			var infoWindow = new google.maps.InfoWindow({
-				content: contentString
-			});
-
 			google.maps.event.addListener(place.marker, 'click', function() {
 				getYelpInfo(place);
-				infoWindow.open(map, place.marker);
 				toggleBounce(place.marker);
 			});
 
@@ -149,8 +149,8 @@ function geocodeAddress(geocoder, resultsMap, place) {
 	});
 }
 
-/*
-Enable the marker to bounce.
+/**
+* Enable the marker to bounce.
 */
 function toggleBounce(marker) {
 	if (marker.getAnimation() !== null) {
@@ -159,12 +159,12 @@ function toggleBounce(marker) {
 		marker.setAnimation(google.maps.Animation.BOUNCE);
 		setTimeout(function() {
 			marker.setAnimation(null);
-		}, 750);
+		}, 1400);
 	}
 }
 
-/*
-Open marker info window when corresponding item was clicked.
+/**
+* Open marker info window when corresponding item was clicked.
 */
 function clickedMarker(name) {
 	markers.forEach(function(markerItem) {
@@ -174,8 +174,8 @@ function clickedMarker(name) {
 	});
 }
 
-/*
-Create ViewModel.
+/**
+* Create ViewModel.
 */
 var ViewModel = function() {
 	var self = this;
@@ -205,5 +205,3 @@ var ViewModel = function() {
 	});
 
 };
-
-ko.applyBindings(new ViewModel());
