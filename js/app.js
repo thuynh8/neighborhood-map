@@ -47,6 +47,7 @@ function getYelpInfo(place) {
 	var consumer_secret = "tJuIiRK3ofSyGrUB0naeQy0urZ0";
 	var token_secret = "HcGZLB5oXS6NbbDI0_WyoLTnqvI";
 
+	// Create parameters that are used for Ajax request.
 	var params = {
 		oauth_consumer_key: "3F_BTxhDD_fmiPnp_lXagA",
 		oauth_token: "tE27kYnJw1B0TT3kqBqZSiNQBOb2J1eH",
@@ -60,9 +61,11 @@ function getYelpInfo(place) {
 		limit: 1
 	}
 
+	// Generate Oauth signature
 	var encodedSignature = oauthSignature.generate('GET', yelp_url, params, consumer_secret, token_secret);
 	params.oauth_signature = encodedSignature;
 
+	// Perform an Ajax request
 	$.ajax({
 		url: yelp_url,
 		data: params,
@@ -72,6 +75,7 @@ function getYelpInfo(place) {
 		var phone = data.businesses[0].display_phone;
 		var rating = data.businesses[0].rating_img_url;
 
+		// Create info window that displays information of a place.
 		var contentString = '<div><strong>'+ place.name + '</strong></br>'+
 								'<p>'+ place.address + '</p></br>' +
 								'<p>Phone: '+ phone + '</p></br>' +
@@ -81,6 +85,7 @@ function getYelpInfo(place) {
 		infoWindow.open(map, place.marker);
 
 	}).fail(function() {
+		// Pop up window that alerts users if Yelp API failed to load.
 		alert("Failed to load Yelp.");
 	});
 }
@@ -99,7 +104,7 @@ function mapError() {
 }
 
 /**
-* Initialize Google map and call geocodeAddress() on each location.
+* Initialize Google map.
 */
 function initMap() {
 
@@ -111,6 +116,7 @@ function initMap() {
 
 	var geocoder = new google.maps.Geocoder();
 
+	// Call geocodeAddress() on each place in the Places array.
 	Places.forEach(function(place) {
 		geocodeAddress(geocoder, map, place);
 	});
@@ -133,6 +139,7 @@ function geocodeAddress(geocoder, resultsMap, place) {
 				position: results[0].geometry.location
 			});
 
+			// When a marker was clicked, marker bounces and Yelp API is called.
 			google.maps.event.addListener(place.marker, 'click', function() {
 				getYelpInfo(place);
 				toggleBounce(place.marker);
@@ -182,6 +189,7 @@ var ViewModel = function() {
 
 	this.filter = ko.observable("");
 
+	// Filter places based on user input.
 	this.filteredPlaces = ko.computed(function() {
 		var filter = self.filter().toLowerCase();
 		if (!filter) {
@@ -203,5 +211,4 @@ var ViewModel = function() {
 		 	});
 		}
 	});
-
 };
