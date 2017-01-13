@@ -1,12 +1,11 @@
 # Neighborhood Map Project  
-The purpose of this project was to develop a single-page application featuring a map of the author’s neighborhood
-and additional functionality, including: map markers to identify popular locations, a search function to easily
-discover these locations, and a list view to support simple browsing of all locations. Third-party
-APIs – Yelp – was also implemented to provide additional information about each of these locations.  
+[![neighborhoodProject.png](https://s12.postimg.org/7uytjcxwt/neighborhood_Project.png)](https://postimg.org/image/k9lljopex/)
+
+Developed a single-page web application, built using the Knockout framework, that displays a Google Map of an area and various points of interest. Users can search all included landmarks and, when selected, additional information about a landmark is presented from the Yelp APIs.
 
 **Live version of this project is available at:** https://neighborhood-google-map.herokuapp.com/
 ## Frameworks, Libraries, and APIs  
-HTML5, CSS, Javascript, KnockoutJS, jQuery, Google Map API, and Yelp API.  
+HTML5, CSS, Javascript, KnockoutJS, jQuery, Google Map API, Yelp API.  
 ## Instruction  
 To run the web application:  
 1. Clone or download this repository.  
