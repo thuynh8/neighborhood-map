@@ -29,6 +29,22 @@ var Places = [
 	{
 		name: 'Brodard Chateau',
 		address: '9100 Trask Ave, Garden Grove, CA 92844'
+	},
+	{
+		name: 'Santa Ana Zoo',
+		address: '1801 E Chestnut Ave, Santa Ana, CA 92701'
+	},
+	{
+		name: 'Paris Baguette',
+		address: '8899 Garden Grove Blvd, Garden Grove, CA 92844'
+	},
+	{
+		name: 'Adventure City',
+		address: '1238 S Beach Blvd, Anaheim, CA 92804'
+	},
+	{
+		name: 'The Boiling Crab',
+		address: '14241 Euclid St, Garden Grove, CA 92843'
 	}
 ];
 
@@ -74,13 +90,18 @@ function getYelpInfo(place) {
 	}).done(function(data) {
 		var phone = data.businesses[0].display_phone;
 		var rating = data.businesses[0].rating_img_url;
+		var snippet = data.businesses[0].snippet_text;
+		var link = data.businesses[0].url;
+		var category = data.businesses[0].categories[0][0];
 
 		// Create info window that displays information of a place.
-		var contentString = '<div><strong>'+ place.name + '</strong></br>'+
-								'<p>'+ place.address + '</p></br>' +
-								'<p>Phone: '+ phone + '</p></br>' +
-								'<p>Yelp Ratings: '+ '<img src="'+ rating + '"></p>' +
-								'</div>';
+		var contentString = '<div><h3>'+ place.name + '</h3>'+
+			'<p>'+ place.address + '</p>' +
+            '<p><strong>Category: </strong>'+ category + '</p>'+
+			'<p><strong>Phone: </strong>'+ phone + '</p>' +
+			'<p><strong>Yelp Ratings: </strong>'+ '<img src="'+ rating + '"></p>' +
+			'<p><strong>Reviews: </strong>'+ snippet +'<a href="'+ link + '">Read more</a></p>'+
+			'</div>';
 		infoWindow.setContent(contentString);
 		infoWindow.open(map, place.marker);
 
@@ -109,7 +130,12 @@ function mapError() {
 function initMap() {
 
 	var map = new google.maps.Map(document.getElementById('map'), {
-		zoom: 10,
+		zoom: 12,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+            position: google.maps.ControlPosition.BOTTOM_CENTER
+        },
 		styles: [
 		  {
 		    "elementType": "geometry",
@@ -290,6 +316,7 @@ function initMap() {
 */
 function geocodeAddress(geocoder, resultsMap, place) {
 	var address = place.address;
+	var customIcon = 'images/favorite-place.png';
 
 	geocoder.geocode({'address': address}, function(results, status) {
 		if (status === 'OK') {
@@ -297,6 +324,7 @@ function geocodeAddress(geocoder, resultsMap, place) {
 			place.marker = new google.maps.Marker({
 				map: resultsMap,
 				animation: google.maps.Animation.DROP,
+				icon: customIcon,
 				position: results[0].geometry.location
 			});
 
